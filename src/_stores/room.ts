@@ -10,13 +10,12 @@ import { wsHost } from "~/_lib/utils";
 import jsonpatch from "fast-json-patch";
 import { batch, createEffect } from "solid-js";
 
-type RoomState =
+export type RoomState =
   | { status: "pending" }
   | { status: "error"; error: Error }
   | { status: "ready"; room: Room; id: string };
 
 export const roomState = createMutable<RoomState>({ status: "pending" });
-export const roomReady = roomState as Extract<RoomState, { status: "ready" }>;
 
 /////////////////////////////////////////////////////
 

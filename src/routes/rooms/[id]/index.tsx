@@ -1,6 +1,6 @@
 import { useParams } from "@solidjs/router";
-import { Match, Switch } from "solid-js";
-import { roomReady, roomState, websocketEffect } from "~/_stores/room";
+import { ErrorBoundary, Match, Switch } from "solid-js";
+import { RoomState, roomState, websocketEffect } from "~/_stores/room";
 
 export default function Page() {
   const params = useParams();
@@ -8,20 +8,31 @@ export default function Page() {
   websocketEffect(params.id);
 
   return (
-    <Switch>
-      <Match when={roomState.status === "error"}>
-        <main>Error!</main>
-      </Match>
-      <Match when={roomState.status === "pending"}>
-        <main>Loading...</main>
-      </Match>
-      <Match when={roomState.status === "ready"}>
-        <WhiteBoard />
-      </Match>
-    </Switch>
+    <ErrorBoundary fallback={<Error />}>
+      <Switch fallback={<Error />}>
+        <Match when={roomState.status === "pending"}>
+          <Loading />
+        </Match>
+        <Match when={roomState.status === "ready"}>
+          <Whiteboard roomState={roomState as any} />
+        </Match>
+      </Switch>
+    </ErrorBoundary>
   );
 }
 
-function WhiteBoard() {
+function Whiteboard(props: {
+  roomState: Extract<RoomState, { status: "ready" }>;
+}) {
+  const { room, id } = props.roomState;
+
   return <main></main>;
+}
+
+function Loading() {
+  return <main>Loading...</main>;
+}
+
+function Error() {
+  return <main>Error!</main>;
 }
