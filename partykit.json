@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.partykit.io/schema.json",
-  "name": "example-bare-party",
+  "name": "just-whiteboard",
   "main": "party/index.ts",
   "compatibilityDate": "2025-09-22"
 }

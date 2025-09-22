@@ -1,7 +1,7 @@
 import { Room } from "~/_lib/types";
 import type * as Party from "partykit/server";
 import jsonpatch from "fast-json-patch";
-import { ServerAction } from "~/_lib/actions";
+import type { ServerActionOutput } from "~/_lib/actions";
 
 export default class Server implements Party.Server {
   newState: Room;
@@ -13,9 +13,9 @@ export default class Server implements Party.Server {
   }
 
   async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    this.room.broadcast(JSON.stringify({ type: "SYNC", room: this.newState }));
-
     this.newState.users[conn.id] = { name: conn.id, pos: { x: 0, y: 0 } };
+
+    this.room.broadcast(JSON.stringify({ type: "SYNC", room: this.newState }));
 
     await this.syncClient();
   }
@@ -28,10 +28,10 @@ export default class Server implements Party.Server {
 
   async onMessage(message: string, sender: Party.Connection) {
     try {
-      const action: ServerAction = JSON.parse(message);
+      const action: ServerActionOutput = JSON.parse(message);
 
-      if (action.type === "MOVE_CURSOR") {
-        this.newState.users[sender.id].pos = action.pos;
+      if (action.type === "moveCursor") {
+        this.newState.users[sender.id].pos = action.data;
       }
 
       await this.syncClient();

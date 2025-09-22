@@ -1,5 +1,5 @@
 {
-  "name": "example-bare",
+  "name": "just-whiteboard",
   "type": "module",
   "scripts": {
     "dev": "vinxi dev",
@@ -12,6 +12,7 @@
     "fast-json-patch": "^3.1.1",
     "partysocket": "1.1.5",
     "solid-js": "^1.9.5",
+    "valibot": "^1.1.0",
     "vinxi": "^0.5.7"
   },
   "engines": {
