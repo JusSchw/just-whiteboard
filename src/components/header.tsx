@@ -45,7 +45,12 @@ export default function Header() {
           <AvatarFallback />
         </Avatar>
       </Route.Link>
-      <Button onClick={handleButtonClick} disabled={isLoading} className="w-24">
+      <Button
+        onClick={handleButtonClick}
+        disabled={isLoading}
+        className="w-24"
+        variant={"secondary"}
+      >
         {buttonContent}
       </Button>
     </header>
