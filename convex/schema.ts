@@ -17,9 +17,13 @@ export default defineSchema({
   })
     .index("email", ["email"])
     .index("phone", ["phone"])
-    .index("whiteboard", ["whiteboard"]),
+    .index("by_whiteboard", ["whiteboard"]),
 
   whiteboards: defineTable({
     owner: v.id("users"),
-  }).index("owner", ["owner"]),
+    name: v.string(),
+    online: v.number(),
+  })
+    .index("by_owner", ["owner"])
+    .index("by_online", ["online"]),
 });

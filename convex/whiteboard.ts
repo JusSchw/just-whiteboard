@@ -4,13 +4,34 @@ import { v } from "convex/values";
 import { ConvexError } from "convex/values";
 import { expectOwner, expectUser } from "./lib/authHelpers";
 
-export const createWhiteboard = mutation({
+export const list = query({
   handler: async (ctx) => {
+    const user = await expectUser(ctx);
+
+    const owned = await ctx.db
+      .query("whiteboards")
+      .withIndex("by_owner", (q) => q.eq("owner", user._id))
+      .collect();
+
+    const { page: discover } = await ctx.db
+      .query("whiteboards")
+      .withIndex("by_online")
+      .filter((q) => q.neq(q.field("owner"), user._id))
+      .order("desc")
+      .paginate({ cursor: null, numItems: 12 });
+
+    return { owned, discover };
+  },
+});
+
+export const create = mutation({
+  args: { name: v.string() },
+  handler: async (ctx, { name }) => {
     const user = await expectUser(ctx);
 
     const whiteboards = await ctx.db
       .query("whiteboards")
-      .withIndex("owner", (q) => q.eq("owner", user._id))
+      .withIndex("by_owner", (q) => q.eq("owner", user._id))
       .collect();
 
     if (whiteboards.length >= 3) {
@@ -19,6 +40,8 @@ export const createWhiteboard = mutation({
 
     const whiteboardId = await ctx.db.insert("whiteboards", {
       owner: user._id,
+      name,
+      online: 1,
     });
 
     await ctx.db.patch(user._id, { whiteboard: whiteboardId });
@@ -27,28 +50,32 @@ export const createWhiteboard = mutation({
   },
 });
 
-export const deleteWhiteboard = mutation({
+export const destroy = mutation({
   handler: async (ctx) => {
     const { whiteboard } = await expectOwner(ctx);
 
     const joined = await ctx.db
       .query("users")
-      .withIndex("whiteboard", (q) => q.eq("whiteboard", whiteboard._id))
+      .withIndex("by_whiteboard", (q) => q.eq("whiteboard", whiteboard._id))
       .collect();
 
-    await Promise.all(
-      joined.map(
-        async (u) => await ctx.db.patch(u._id, { whiteboard: undefined })
-      )
-    );
+    for (const user of joined) {
+      await ctx.db.patch(user._id, { whiteboard: undefined });
+    }
 
     await ctx.db.delete(whiteboard._id);
   },
 });
 
-export const enterWhiteboard = mutation({
-  args: { whiteboardId: v.id("whiteboards") },
-  handler: async (ctx, { whiteboardId }) => {
+export const enter = mutation({
+  args: { whiteboardId: v.string() },
+  handler: async (ctx, args) => {
+    const whiteboardId = ctx.db.normalizeId("whiteboards", args.whiteboardId);
+
+    if (!whiteboardId) {
+      throw new ConvexError("Whiteboard not found");
+    }
+
     const userId = await getAuthUserId(ctx);
 
     if (!userId) {
@@ -58,23 +85,29 @@ export const enterWhiteboard = mutation({
     const whiteboard = await ctx.db.get(whiteboardId);
 
     if (!whiteboard) {
-      throw new ConvexError("Whiteboard not found.");
+      throw new ConvexError("Whiteboard not found");
     }
 
+    await ctx.db.patch(whiteboard._id, { online: whiteboard.online + 1 });
     await ctx.db.patch(userId, { whiteboard: whiteboardId });
-
-    return true;
   },
 });
 
-export const exitWhiteboard = mutation({
+export const exit = mutation({
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
+    const user = await expectUser(ctx);
 
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
+    if (!user.whiteboard) {
+      throw new ConvexError("No whiteboard selected");
     }
 
-    await ctx.db.patch(userId, { whiteboard: undefined });
+    const whiteboard = await ctx.db.get(user.whiteboard);
+
+    if (!whiteboard) {
+      throw new ConvexError("Whiteboard not found");
+    }
+
+    await ctx.db.patch(whiteboard._id, { online: whiteboard.online - 1 });
+    await ctx.db.patch(user._id, { whiteboard: undefined });
   },
 });
