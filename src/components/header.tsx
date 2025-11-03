@@ -17,7 +17,7 @@ export default function Header() {
     <Spinner />
   ) : isAuthenticated ? (
     <>
-      <span>Logout</span>
+      <span>Log out</span>
       <LogOut />
     </>
   ) : (

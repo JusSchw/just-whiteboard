@@ -10,7 +10,9 @@
 
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
+import type * as lib_authHelpers from "../lib/authHelpers.js";
 import type * as user from "../user.js";
+import type * as whiteboard from "../whiteboard.js";
 
 import type {
   ApiFromModules,
@@ -29,7 +31,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
+  "lib/authHelpers": typeof lib_authHelpers;
   user: typeof user;
+  whiteboard: typeof whiteboard;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
