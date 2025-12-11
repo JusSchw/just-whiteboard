@@ -1,6 +1,6 @@
 import { api } from "@convex/api";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import {
   Item,
   ItemActions,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -18,40 +19,69 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const whiteboards = useQuery(api.whiteboard.list);
+  const create = useMutation(api.whiteboard.create);
+  const enter = useMutation(api.whiteboard.enter);
+
+  if (whiteboards === undefined) return <></>;
+  const { discover, owned } = whiteboards;
+
   return (
     <main>
       <section className="grid grid-cols-3 p-4 gap-2">
         {whiteboards && (
           <>
-            {whiteboards.owned.map((whiteboard) => (
-              <Item>{whiteboard.name}</Item>
-            ))}
-            {whiteboards.owned.length < 3 && (
-              <Item variant={"muted"}>
-                <ItemMedia className="flex items-center h-full">
-                  <Plus />
-                </ItemMedia>
+            {owned.map((whiteboard) => (
+              <Item>
                 <ItemContent>
-                  <ItemTitle>Create Whiteboard</ItemTitle>
-                  <ItemDescription>
-                    Create a new whiteboard{" "}
-                    <span className="">{whiteboards.owned.length} / 3</span>
-                  </ItemDescription>
+                  <ItemTitle>{whiteboard.name}</ItemTitle>
                 </ItemContent>
+                <ItemActions>
+                  <Button>Enter</Button>
+                </ItemActions>
               </Item>
+            ))}
+            {owned.length < 3 && (
+              <>
+                <Item variant={"muted"}>
+                  <ItemMedia className="flex items-center h-full">
+                    <Plus />
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle>Create Whiteboard</ItemTitle>
+                    <ItemDescription>
+                      Create a new whiteboard{" "}
+                      <span className="">{owned.length} / 3</span>
+                    </ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Button
+                      variant={"outline"}
+                      onClick={() => create({ name: "test" })}
+                    >
+                      Create
+                    </Button>
+                  </ItemActions>
+                </Item>
+                {Array.from({ length: 2 - owned.length }, () => (
+                  <Item className="border border-accent border-dashed" />
+                ))}
+              </>
             )}
           </>
         )}
       </section>
       <Separator />
       <section className="grid grid-cols-3 p-4">
-        {whiteboards && (
-          <>
-            {whiteboards.discover.map((whiteboard) => (
-              <Item>{whiteboard.name}</Item>
-            ))}
-          </>
-        )}
+        {discover.map((whiteboard) => (
+          <Item>
+            <ItemContent>
+              <ItemTitle>{whiteboard.name}</ItemTitle>
+            </ItemContent>
+            <ItemActions>
+              <Button>Enter</Button>
+            </ItemActions>
+          </Item>
+        ))}
       </section>
     </main>
   );
