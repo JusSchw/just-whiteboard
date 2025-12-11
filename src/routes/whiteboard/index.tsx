@@ -57,7 +57,7 @@ function MotionCursor({ x, y }: { x: number; y: number }) {
         transform: "translate(-50%, -50%)",
       }}
     >
-      <MousePointer2 className="text-blue-500" />
+      <MousePointer2 />
     </motion.div>
   );
 }

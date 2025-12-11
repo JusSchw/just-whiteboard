@@ -48,7 +48,7 @@ export const create = mutation({
     const whiteboardId = await ctx.db.insert("whiteboards", {
       owner: user._id,
       name,
-      online: 1,
+      online: 0,
     });
 
     await ctx.db.patch(user._id, { whiteboard: whiteboardId });
