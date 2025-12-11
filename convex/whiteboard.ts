@@ -2,25 +2,32 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { ConvexError } from "convex/values";
-import { expectOwner, expectUser } from "./lib/authHelpers";
+import { expectOwner, expectUser, getUser } from "./lib/authHelpers";
 
 export const list = query({
   handler: async (ctx) => {
-    const user = await expectUser(ctx);
+    const user = await getUser(ctx);
 
-    const owned = await ctx.db
-      .query("whiteboards")
-      .withIndex("by_owner", (q) => q.eq("owner", user._id))
-      .collect();
+    const owned =
+      user &&
+      (await ctx.db
+        .query("whiteboards")
+        .withIndex("by_owner", (q) => q.eq("owner", user._id))
+        .collect());
 
-    const { page: discover } = await ctx.db
+    let discoverQuery = ctx.db
       .query("whiteboards")
       .withIndex("by_online")
-      .filter((q) => q.neq(q.field("owner"), user._id))
-      .order("desc")
-      .paginate({ cursor: null, numItems: 12 });
+      .order("desc");
 
-    return { owned, discover };
+    if (user) {
+      discoverQuery = discoverQuery.filter((q) =>
+        q.neq(q.field("owner"), user._id)
+      );
+    }
+    const discover = await discoverQuery.take(12);
+
+    return { owned: owned ?? undefined, discover };
   },
 });
 

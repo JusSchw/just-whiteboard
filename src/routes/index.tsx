@@ -1,6 +1,6 @@
 import { api } from "@convex/api";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import {
   Item,
   ItemActions,
@@ -18,29 +18,30 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const whiteboards = useQuery(api.whiteboard.list);
   const create = useMutation(api.whiteboard.create);
   const enter = useMutation(api.whiteboard.enter);
 
-  if (whiteboards === undefined) return <></>;
-  const { discover, owned } = whiteboards;
+  const { discover, owned } = whiteboards ?? { discover: [], owned: [] };
 
   return (
     <main>
-      <section className="grid grid-cols-3 p-4 gap-2">
-        {whiteboards && (
-          <>
-            {owned.map((whiteboard) => (
-              <Item>
-                <ItemContent>
-                  <ItemTitle>{whiteboard.name}</ItemTitle>
-                </ItemContent>
-                <ItemActions>
-                  <Button>Enter</Button>
-                </ItemActions>
-              </Item>
-            ))}
-            {owned.length < 3 && (
+      {isAuthenticated && (
+        <>
+          <section className="grid grid-cols-3 p-4 gap-2">
+            {owned &&
+              owned.map((whiteboard) => (
+                <Item>
+                  <ItemContent>
+                    <ItemTitle>{whiteboard.name}</ItemTitle>
+                  </ItemContent>
+                  <ItemActions>
+                    <Button>Enter</Button>
+                  </ItemActions>
+                </Item>
+              ))}
+            {owned && owned.length < 3 && (
               <>
                 <Item variant={"muted"}>
                   <ItemMedia className="flex items-center h-full">
@@ -67,10 +68,10 @@ function RouteComponent() {
                 ))}
               </>
             )}
-          </>
-        )}
-      </section>
-      <Separator />
+          </section>
+          {discover.length > 0 && <Separator />}
+        </>
+      )}
       <section className="grid grid-cols-3 p-4">
         {discover.map((whiteboard) => (
           <Item>
