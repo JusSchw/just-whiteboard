@@ -1,5 +1,5 @@
 import { api } from "@convex/api";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import {
   Item,
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
+  const navigate = useNavigate();
   const { isAuthenticated } = useConvexAuth();
   const whiteboards = useQuery(api.whiteboard.list);
   const create = useMutation(api.whiteboard.create);
@@ -28,6 +29,7 @@ function RouteComponent() {
 
   const clickEnter = (id: string) => async () => {
     await enter({ whiteboardId: id });
+    navigate({ to: "/whiteboard" });
   };
 
   return (

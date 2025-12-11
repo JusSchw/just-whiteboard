@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as cursor from "../cursor.js";
 import type * as http from "../http.js";
 import type * as lib_authHelpers from "../lib/authHelpers.js";
 import type * as user from "../user.js";
@@ -22,6 +23,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  cursor: typeof cursor;
   http: typeof http;
   "lib/authHelpers": typeof lib_authHelpers;
   user: typeof user;

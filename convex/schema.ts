@@ -26,4 +26,16 @@ export default defineSchema({
   })
     .index("by_owner", ["owner"])
     .index("by_online", ["online"]),
+
+  cursors: defineTable({
+    userId: v.id("users"),
+    whiteboard: v.id("whiteboards"),
+
+    pos: v.optional(v.object({ x: v.number(), y: v.number() })),
+
+    lastUpdated: v.number(),
+  })
+    .index("by_whiteboard", ["whiteboard"])
+    .index("by_user", ["userId"])
+    .index("by_whiteboard_user", ["whiteboard", "userId"]),
 });
