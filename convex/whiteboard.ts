@@ -83,20 +83,28 @@ export const enter = mutation({
       throw new ConvexError("Whiteboard not found");
     }
 
-    const userId = await getAuthUserId(ctx);
+    const user = await expectUser(ctx);
 
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    if (whiteboardId === user.whiteboard) return;
 
-    const whiteboard = await ctx.db.get(whiteboardId);
+    const newWhiteboard = await ctx.db.get(whiteboardId);
 
-    if (!whiteboard) {
+    if (!newWhiteboard) {
       throw new ConvexError("Whiteboard not found");
     }
 
-    await ctx.db.patch(whiteboard._id, { online: whiteboard.online + 1 });
-    await ctx.db.patch(userId, { whiteboard: whiteboardId });
+    if (user.whiteboard) {
+      const oldWhiteboard =
+        user.whiteboard && (await ctx.db.get(user.whiteboard));
+
+      oldWhiteboard &&
+        (await ctx.db.patch(user.whiteboard, {
+          online: Math.max(oldWhiteboard.online - 1, 0),
+        }));
+    }
+
+    await ctx.db.patch(newWhiteboard._id, { online: newWhiteboard.online + 1 });
+    await ctx.db.patch(user._id, { whiteboard: whiteboardId });
   },
 });
 
